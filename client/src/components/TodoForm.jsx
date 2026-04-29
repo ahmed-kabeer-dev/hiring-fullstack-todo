@@ -5,11 +5,18 @@ export default function TodoForm({ onAdd }) {
   const [description, setDescription] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [shake, setShake] = useState(false);
+
+  const triggerShake = () => {
+    setShake(true);
+    setTimeout(() => setShake(false), 400);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!title.trim()) {
       setError('Title is required');
+      triggerShake();
       return;
     }
     setLoading(true);
@@ -30,20 +37,29 @@ export default function TodoForm({ onAdd }) {
       <h2 className="text-lg font-semibold text-gray-800 mb-4">Add a new task</h2>
 
       {error && (
-        <p className="text-sm text-red-500 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-3">
+        <p className="text-sm text-red-500 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-3 animate-pulse">
           {error}
         </p>
       )}
 
       <div className="flex flex-col gap-3">
+        <div className="relative">
         <input
           type="text"
           placeholder="Task title *"
           value={title}
           onChange={(e) => { setTitle(e.target.value); setError(''); }}
-          className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 transition"
+          className={`w-full border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 transition ${
+              error ? 'border-red-300' : 'border-gray-200'
+            } ${shake ? 'animate-bounce' : ''}`}
           maxLength={200}
         />
+
+         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-300">
+            {title.length}/200
+          </span>
+        </div>
+
         <textarea
           placeholder="Description (optional)"
           value={description}

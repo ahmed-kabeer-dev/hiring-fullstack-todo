@@ -12,9 +12,23 @@ export default function TodoList({ todos, onToggle, onUpdate, onDelete }) {
 
   const pending = todos.filter((t) => !t.done);
   const done = todos.filter((t) => t.done);
+  const percent = Math.round((done.length / todos.length) * 100);
 
   return (
     <div className="flex flex-col gap-3">
+      {/* Progress bar */}
+      <div className="mb-1">
+        <div className="flex justify-between text-xs text-gray-400 mb-1">
+          <span>Progress</span>
+          <span>{percent}%</span>
+        </div>
+        <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-indigo-500 rounded-full transition-all duration-500"
+            style={{ width: `${percent}%` }}
+          />
+        </div>
+      </div>
       {pending.map((todo) => (
         <TodoItem key={todo._id} todo={todo} onToggle={onToggle} onUpdate={onUpdate} onDelete={onDelete} />
       ))}

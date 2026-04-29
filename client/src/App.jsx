@@ -3,10 +3,37 @@ import * as api from './api/todos';
 import TodoForm from './components/TodoForm';
 import TodoList from './components/TodoList';
 
+//Toast component
+function Toast({ message, type, onClose }) {
+  useEffect(() => {
+    const t = setTimeout(onClose, 3000);
+    return () => clearTimeout(t);
+  }, [onClose]);
+
+  return (
+    <div className={`fixed bottom-5 right-5 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-sm font-medium text-white transition-all duration-300 animate-[fadeIn_0.2s_ease-in] ${type === 'success' ? 'bg-green-500' : 'bg-red-500'
+      }`}>
+      {type === 'success' ? (
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+        </svg>
+      ) : (
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      )}
+      {message}
+    </div>
+  );
+}
+
 export default function App() {
   const [todos, setTodos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [toast, setToast] = useState(null);
+
+  const showToast = (message, type = 'success') => setToast({ message, type });
 
   const loadTodos = useCallback(async () => {
     try {
@@ -23,35 +50,35 @@ export default function App() {
 
   const handleAdd = async (todoData) => {
     const { data } = await api.createTodo(todoData);
-    // Optimistic-style: prepend immediately
     setTodos((prev) => [data, ...prev]);
+    showToast('Task added!');
   };
 
   const handleToggle = async (id) => {
-    // Optimistic update
     setTodos((prev) => prev.map((t) => t._id === id ? { ...t, done: !t.done } : t));
     try {
       const { data } = await api.toggleDone(id);
       setTodos((prev) => prev.map((t) => t._id === id ? data : t));
     } catch {
-      // Revert on failure
       setTodos((prev) => prev.map((t) => t._id === id ? { ...t, done: !t.done } : t));
+      showToast('Failed to update task', 'error');
     }
   };
 
   const handleUpdate = async (id, updatedData) => {
     const { data } = await api.updateTodo(id, updatedData);
     setTodos((prev) => prev.map((t) => t._id === id ? data : t));
+    showToast('Task updated!');
   };
 
   const handleDelete = async (id) => {
-    // Optimistic update
     setTodos((prev) => prev.filter((t) => t._id !== id));
     try {
       await api.deleteTodo(id);
+      showToast('Task deleted!');
     } catch {
-      // Revert on failure
       loadTodos();
+      showToast('Failed to delete task', 'error');
     }
   };
 
@@ -96,6 +123,14 @@ export default function App() {
           />
         )}
       </div>
+      {/* Toast notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 }
